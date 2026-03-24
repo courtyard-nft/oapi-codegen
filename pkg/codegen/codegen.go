@@ -246,16 +246,21 @@ func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 			return "", fmt.Errorf("error generating type definitions: %w", err)
 		}
 
-		constantDefinitions, err = GenerateConstants(t, ops)
-		if err != nil {
-			return "", fmt.Errorf("error generating constants: %w", err)
-		}
-
 		imprts, err := GetTypeDefinitionsImports(spec, opts.OutputOptions.ExcludeSchemas)
 		if err != nil {
 			return "", fmt.Errorf("error getting type definition imports: %w", err)
 		}
 		MergeImports(xGoTypeImports, imprts)
+	} else {
+		typeDefinitions, err = GenerateSecuritySchemeTypeDefinitions(t, spec)
+		if err != nil {
+			return "", fmt.Errorf("error generating security scheme type definitions: %w", err)
+		}
+	}
+
+	constantDefinitions, err = GenerateConstants(t, ops)
+	if err != nil {
+		return "", fmt.Errorf("error generating constants: %w", err)
 	}
 
 	var serverURLsDefinitions string
@@ -610,6 +615,19 @@ func GenerateTypeDefinitions(t *template.Template, swagger *openapi3.T, ops []Op
 
 	typeDefinitions := strings.Join([]string{enumsOut, typesOut, operationsOut, allOfBoilerplate, unionBoilerplate, unionAndAdditionalBoilerplate}, "")
 	return typeDefinitions, nil
+}
+
+func GenerateSecuritySchemeTypeDefinitions(t *template.Template, swagger *openapi3.T) (string, error) {
+	if swagger.Components == nil {
+		return "", nil
+	}
+
+	securitySchemeTypes, err := GenerateTypesForSecuritySchemes(t, swagger.Components.SecuritySchemes)
+	if err != nil {
+		return "", fmt.Errorf("error generating Go types for component security schemes: %w", err)
+	}
+
+	return GenerateTypes(t, securitySchemeTypes)
 }
 
 // GenerateConstants generates operation ids, context keys, paths, etc. to be exported as constants
