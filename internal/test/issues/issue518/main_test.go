@@ -29,7 +29,7 @@ func hasSecurityScopes(c *fiber.Ctx) bool {
 	return ok
 }
 
-func TestIssue1469(t *testing.T) {
+func TestIssue518(t *testing.T) {
 	server := &impl{}
 
 	assert.NotPanics(t, func() {
