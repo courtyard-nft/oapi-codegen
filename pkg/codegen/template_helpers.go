@@ -1,10 +1,11 @@
+```go
 // Copyright 2019 DeepMap, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +18,15 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/util"
+	"[github.com/getkin/kin-openapi/openapi3](https://github.com/getkin/kin-openapi/openapi3)"
+	"[github.com/oapi-codegen/oapi-codegen/v2/pkg/util](https://github.com/oapi-codegen/oapi-codegen/v2/pkg/util)"
 )
 
 const (
@@ -226,7 +228,7 @@ func genResponseUnmarshal(op *OperationDefinition) string {
 	}
 
 	// Now build the switch statement in order of most-to-least specific:
-	// See: https://github.com/oapi-codegen/oapi-codegen/issues/127 for why we handle this in two separate
+	// See: [https://github.com/oapi-codegen/oapi-codegen/issues/127](https://github.com/oapi-codegen/oapi-codegen/issues/127) for why we handle this in two separate
 	// groups.
 	fmt.Fprintf(buffer, "switch {\n")
 	for _, caseClauseKey := range SortedMapKeys(handledCaseClauses) {
@@ -289,13 +291,18 @@ func getConditionOfResponseName(statusCodeVar, responseName string) string {
 	}
 }
 
-// This outputs a string array
+// toStringArray renders the given values as a Go []string literal. Each
+// element is escaped with strconv.Quote because the values (for example,
+// OAuth2 scope names) originate from the OpenAPI specification, which is
+// untrusted input: without escaping, a scope name containing a double quote
+// would break out of the generated string literal and inject arbitrary Go
+// code into the generated middleware.
 func toStringArray(sarr []string) string {
-	s := strings.Join(sarr, `","`)
-	if len(s) > 0 {
-		s = `"` + s + `"`
+	parts := make([]string, len(sarr))
+	for i, s := range sarr {
+		parts[i] = strconv.Quote(s)
 	}
-	return `[]string{` + s + `}`
+	return `[]string{` + strings.Join(parts, `,`) + `}`
 }
 
 func stripNewLines(s string) string {
@@ -303,7 +310,7 @@ func stripNewLines(s string) string {
 	return r.Replace(s)
 }
 
-// genServerURLWithVariablesFunctionParams is a template helper method to generate the function parameters for the generated function for a Server object that contains `variables` (https://spec.openapis.org/oas/v3.0.3#server-object)
+// genServerURLWithVariablesFunctionParams is a template helper method to generate the function parameters for the generated function for a Server object that contains `variables` ([https://spec.openapis.org/oas/v3.0.3#server-object](https://spec.openapis.org/oas/v3.0.3#server-object))
 //
 // goTypePrefix is the prefix being used to create underlying types in the template (likely the `ServerObjectDefinition.GoName`)
 // variables are this `ServerObjectDefinition`'s variables for the Server object (likely the `ServerObjectDefinition.OAPISchema`)
