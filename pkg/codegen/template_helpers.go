@@ -17,6 +17,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -289,13 +290,18 @@ func getConditionOfResponseName(statusCodeVar, responseName string) string {
 	}
 }
 
-// This outputs a string array
+// toStringArray renders the given values as a Go []string literal. Each
+// element is escaped with strconv.Quote because the values (for example,
+// OAuth2 scope names) originate from the OpenAPI specification, which is
+// untrusted input: without escaping, a scope name containing a double quote
+// would break out of the generated string literal and inject arbitrary Go
+// code into the generated middleware.
 func toStringArray(sarr []string) string {
-	s := strings.Join(sarr, `","`)
-	if len(s) > 0 {
-		s = `"` + s + `"`
+	parts := make([]string, len(sarr))
+	for i, s := range sarr {
+		parts[i] = strconv.Quote(s)
 	}
-	return `[]string{` + s + `}`
+	return `[]string{` + strings.Join(parts, `,`) + `}`
 }
 
 func stripNewLines(s string) string {
